@@ -170,49 +170,66 @@ def top_categories(
     return result
 
 
-def compute_quality_flags(df: pd.DataFrame) -> Dict[str, Any]:
-    n_rows, n_cols = df.shape
-    flags = {}
+def compute_quality_flags(
+    df: pd.DataFrame,
+    summary: DatasetSummary,
+    missing_df: pd.DataFrame,   
+) -> Dict[str, Any]:
+    """
+    Простейшие эвристики «качества» данных:
+    - слишком много пропусков;
+    - подозрительно мало строк;
+    и т.п.
+    """
+    flags: Dict[str, Any] = {}
+    flags["too_few_rows"] = summary.n_rows < 100
+    flags["too_many_columns"] = summary.n_cols > 100
 
-    #флаги на строки и столбцы
-    flags["too_few_rows"] = n_rows < 100
-    flags["too_many_columns"] = n_cols > 100
+    max_missing_share = float(missing_df["missing_share"].max()) if not missing_df.empty else 0.0
+    flags["max_missing_share"] = max_missing_share
+    flags["too_many_missing"] = max_missing_share > 0.5
 
-    #флаги на пропуски
-    missing_share = df.isnull().mean()
-    max_missing = float(missing_share.max()) if n_cols > 0 else 0.0
-    flags["max_missing_share"] = max_missing
-    flags["too_many_missing"] = max_missing > 0.5
+    has_constant = False        #новая эвристика 1 - проверка на константные колонки
+    for col in df.columns:
+        non_nan_vals = df[col].dropna() 
+        if len(non_nan_vals) == 0:
+            has_constant = True
+            break
+        if non_nan_vals.nunique() == 1 and df[col].isna().sum() == 0:
+            has_constant = True
+            break
+        if non_nan_vals.nunique() == 1 and df[col].isna().sum() > 0:
+            has_constant = True
+            break
+    flags["has_constant_columns"] = has_constant
 
-    #новые эвристики
-    flags["has_constant_columns"] = bool((df.nunique() == 1).any())          #флаг на одинаковые колонки
+    has_high_cardinality = False    #новая эвристика 2 - проверка на уникальность категориальных признаков
+    high_cardinality_threshold = 0.85
+    min_unique = 10
+    
+    for col_sum in summary.columns:
+        if not col_sum.is_numeric:
+            if col_sum.non_null > 0:
+                unique_ratio = col_sum.unique / col_sum.non_null
+                if unique_ratio > high_cardinality_threshold and col_sum.unique >= min_unique:
+                    has_high_cardinality = True
+                    break
+    flags["has_high_cardinality_categoricals"] = has_high_cardinality
 
-    num_cols = df.select_dtypes(include='number').columns
-    flags["has_many_zero_values"] = False
-    if len(num_cols) > 0:
-        zero_ratio = (df[num_cols] == 0).mean()                             #флаг на долю нулей
-        flags["has_many_zero_values"] = bool((zero_ratio >= 0.8).any())
-
-    flags["has_high_cardinality_categoricals"] = False                     #флаг на слишком большое количество уникальных значений
-    cat_cols = df.select_dtypes(include=['object', 'category']).columns
-    if len(cat_cols) > 0:
-        max_card = df[cat_cols].nunique().max()
-        flags["has_high_cardinality_categoricals"] = max_card > 50
-
-    flags["has_suspicious_id_duplicates"] = (                              #флаг на одинаковые id 
-        "user_id" in df.columns and df["user_id"].duplicated().any()
-    )
-
-    #итоговый скор
+    # Простейший «скор» качества
     score = 1.0
-    score -= max_missing
-    if flags["too_few_rows"]: score -= 0.2
-    if flags["too_many_columns"]: score -= 0.1
-    if flags["has_constant_columns"]: score -= 0.1
-    if flags["has_many_zero_values"]: score -= 0.05
-    if flags["has_high_cardinality_categoricals"]: score -= 0.05
-    if flags["has_suspicious_id_duplicates"]: score -= 0.1
-    flags["quality_score"] = max(0.0, min(1.0, score))
+    score -= max_missing_share  # чем больше пропусков, тем хуже
+    if summary.n_rows < 100:
+        score -= 0.2
+    if summary.n_cols > 100:
+        score -= 0.1
+    if has_high_cardinality:
+        score -= 0.1
+    if has_constant:
+        score -= 0.1
+
+    score = max(0.0, min(1.0, score))
+    flags["quality_score"] = score
 
     return flags
 
