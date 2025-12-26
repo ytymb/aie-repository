@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from time import perf_counter
+import time
 
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
+import uuid as ud
+import json
+from datetime import datetime, timezone
 
 from .core import compute_quality_flags, missing_table, summarize_dataset
 
@@ -84,6 +87,22 @@ class QualityResponse(BaseModel):
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     """Простейший health-check сервиса."""
+
+    start = time.perf_counter()
+    request_id = str(ud.uuid4())
+
+    latency_ms = (time.perf_counter() - start) * 1000.0
+
+    log_entry = {
+        "endpoint": "/health",
+        "status": 200,
+        "latency_ms": latency_ms,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "request_id": request_id,
+    }
+    print(json.dumps(log_entry))
+    
+
     return {
         "status": "ok",
         "service": "dataset-quality",
@@ -101,7 +120,8 @@ def quality(req: QualityRequest) -> QualityResponse:
     и возвращает эвристическую оценку качества.
     """
 
-    start = perf_counter()
+    start = time.perf_counter()
+    request_id = str(ud.uuid4())
 
     # Базовый скор от 0 до 1
     score = 1.0
@@ -133,7 +153,7 @@ def quality(req: QualityRequest) -> QualityResponse:
     else:
         message = "Качество данных недостаточно, требуется доработка (по текущим эвристикам)."
 
-    latency_ms = (perf_counter() - start) * 1000.0
+    latency_ms = (time.perf_counter() - start) * 1000.0
 
     # Флаги, которые могут быть полезны для последующего логирования/аналитики
     flags = {
@@ -144,12 +164,16 @@ def quality(req: QualityRequest) -> QualityResponse:
         "no_categorical_columns": req.categorical_cols == 0,
     }
 
-    # Примитивный лог — на семинаре можно обсудить, как это превратить в нормальный logger
-    print(
-        f"[quality] n_rows={req.n_rows} n_cols={req.n_cols} "
-        f"max_missing_share={req.max_missing_share:.3f} "
-        f"score={score:.3f} latency_ms={latency_ms:.1f} ms"
-    )
+    log_entry = {
+        "endpoint": "/quality",
+        "status": 200,
+        "score": score,
+        "latency_ms": latency_ms,
+        "ok_for_model": ok_for_model,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "request_id": request_id,
+    }
+    print(json.dumps(log_entry))
 
     return QualityResponse(
         ok_for_model=ok_for_model,
@@ -179,7 +203,8 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
     Именно это по сути связывает S03 (CLI EDA) и S04 (HTTP-сервис).
     """
 
-    start = perf_counter()
+    start = time.perf_counter()
+    request_id = str(ud.uuid4())
 
     if file.content_type not in ("text/csv", "application/vnd.ms-excel", "application/octet-stream"):
         # content_type от браузера может быть разным, поэтому проверка мягкая
@@ -200,6 +225,14 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
     missing_df = missing_table(df)
     flags_all = compute_quality_flags(df, summary, missing_df)
 
+    try:
+        n_rows = int(getattr(summary, "n_rows"))
+        n_cols = int(getattr(summary, "n_cols"))
+    except AttributeError:
+        n_rows = int(df.shape[0])
+        n_cols = int(df.shape[1])
+
+
     # Ожидаем, что compute_quality_flags вернёт quality_score в [0,1]
     score = float(flags_all.get("quality_score", 0.0))
     score = max(0.0, min(1.0, score))
@@ -209,8 +242,22 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
         message = "CSV выглядит достаточно качественным для обучения модели (по текущим эвристикам)."
     else:
         message = "CSV требует доработки перед обучением модели (по текущим эвристикам)."
+    
 
-    latency_ms = (perf_counter() - start) * 1000.0
+    latency_ms = (time.perf_counter() - start) * 1000.0
+
+    log_entry = {
+        "endpoint": "/quality-from-csv",
+        "status": 200,
+        "latency_ms": latency_ms,
+        "ok_for_model": ok_for_model,
+        "n_rows": n_rows,
+        "n_cols": n_cols,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "request_id": request_id,
+    }
+    print(json.dumps(log_entry))
+    
 
     # Оставляем только булевы флаги для компактности
     flags_bool: dict[str, bool] = {
@@ -218,22 +265,6 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
         for key, value in flags_all.items()
         if isinstance(value, bool)
     }
-
-
-    # Размеры датасета берём из summary (если там есть поля n_rows/n_cols),
-    # иначе — напрямую из DataFrame.
-    try:
-        n_rows = int(getattr(summary, "n_rows"))
-        n_cols = int(getattr(summary, "n_cols"))
-    except AttributeError:
-        n_rows = int(df.shape[0])
-        n_cols = int(df.shape[1])
-
-    print(
-        f"[quality-from-csv] filename={file.filename!r} "
-        f"n_rows={n_rows} n_cols={n_cols} score={score:.3f} "
-        f"latency_ms={latency_ms:.1f} ms"
-    )
 
     return QualityResponse(
         ok_for_model=ok_for_model,
@@ -243,7 +274,7 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
         flags=flags_bool,
         dataset_shape={"n_rows": n_rows, "n_cols": n_cols},
     )
-
+    
 @app.post(
     "/quality-flags-from-csv",
     tags=["quality"],
@@ -252,8 +283,12 @@ async def quality_from_csv(file: UploadFile = File(...)) -> QualityResponse:
 async def quality_flags_from_csv(file: UploadFile = File(...)) -> dict:
     """
     Принимает CSV-файл, запускает EDA-ядро и возвращает все флаги качества,
-    включая пользовательские эвристики из HW03 (например, has_constant_columns и др.).
+    включая пользовательские эвристики из HW03.
     """
+
+    start = time.perf_counter()
+    request_id = str(ud.uuid4())
+    
     if file.content_type not in ("text/csv", "application/vnd.ms-excel", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Ожидается CSV-файл (content-type text/csv).")
 
@@ -277,6 +312,19 @@ async def quality_flags_from_csv(file: UploadFile = File(...)) -> dict:
         if isinstance(value, bool)
     }
 
+    latency_ms = (time.perf_counter() - start) * 1000.0
+
+    log_entry = {
+        "endpoint": "/quality-flags-from-csv",
+        "status": 200,
+        "latency_ms": latency_ms,
+        "n_rows": summary.n_rows,
+        "n_cols": summary.n_cols,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "request_id": request_id,
+    }
+    print(json.dumps(log_entry))
+    
     return {"flags": flags_bool}
 
 @app.post(
@@ -288,6 +336,9 @@ async def csv_summary(file: UploadFile = File(...)) -> dict:
     """
     Принимает CSV-файл и возвращает полную сводку по датасету
     """
+    start = time.perf_counter()
+    request_id = str(ud.uuid4())
+
     if file.content_type not in ("text/csv", "application/vnd.ms-excel", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Ожидается CSV-файл.")
 
@@ -300,4 +351,18 @@ async def csv_summary(file: UploadFile = File(...)) -> dict:
         raise HTTPException(status_code=400, detail="CSV-файл пуст.")
 
     summary = summarize_dataset(df)
+
+    latency_ms = (time.perf_counter() - start) * 1000.0
+    log_entry = {
+        "endpoint": "/summary",
+        "status": 200,
+        "latency_ms": latency_ms,
+        "n_rows": summary.n_rows,
+        "n_cols": summary.n_cols,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+        "request_id": request_id,
+    }
+    print(json.dumps(log_entry))
+
+
     return summary.to_dict()
