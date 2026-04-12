@@ -1,0 +1,11 @@
+query,expected_source,retrieved_sources,hit_at_k,recall_at_k
+How does Aristotle’s concept of 'wholeness' challenge scientific reductionism?,doc_000,"doc_000, doc_000, doc_000",1,1.0
+"What are the three categories of emergent phenomena, and why does the author propose retiring the term?",doc_000,"doc_000, doc_000, doc_000",1,1.0
+How can Walton’s six dialogue types help contextualize different standards of rigor in mathematical proofs?,doc_001,"doc_001, doc_001, doc_001",1,1.0
+What role do 'critical questions' play in evaluating defeasible mathematical arguments?,doc_001,"doc_003, doc_001, doc_003",1,1.0
+Why is equating mathematical proof strictly with formal derivation considered a misrepresentation of actual practice?,doc_002,"doc_002, doc_002, doc_002",1,1.0
+How can argumentation schemes bridge the gap between rigorous proofs and informal mathematical reasoning?,doc_002,"doc_002, doc_004, doc_002",1,1.0
+Why do mathematicians frequently rely on informal or non-deductive arguments instead of strict formal derivations?,doc_003,"doc_002, doc_003, doc_002",1,1.0
+How do cultural and historical contexts influence what counts as a 'valid' mathematical argument?,doc_003,"doc_001, doc_003, doc_002",1,1.0
+How does Angluin’s list of 'spurious proof methods' reflect real-world anxieties and informal practices in mathematics?,doc_004,"doc_003, doc_004, doc_003",1,1.0
+Why is humor considered a cognitive mechanism for detecting incongruities in mathematical reasoning?,doc_004,"doc_004, doc_004, doc_004",1,1.0

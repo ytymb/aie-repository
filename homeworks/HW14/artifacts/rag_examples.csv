@@ -1,0 +1,64 @@
+question,answer,retrieved_sources
+What are the main characteristics of complex systems?,"Контекст:
+Фрагмент doc_000_0 (источник: ds_PhilPapersAI.json, оценка: 0.701)
+This paper explores some of the factors that make complex systems complex. We first examine the history of complex systems. It was Aristotle's insight that how elements are joined together helps deter
+
+---
+
+Фрагмент doc_000_30 (источник: ds_PhilPapersAI.json, оценка: 0.536)
+t also their organization and the forces that hold them together. A system of any complexity must be open to draw energy and resources from its environment. Such systems must have means for acquiring
+
+---
+
+Фрагмент doc_000_5 (источник: ds_PhilPapersAI.json, оценка: 0.487)
+lly all communication is stigmergic. Quite a few steps were required to flesh out the idea of a complex system. Aristotle took one of the earliest steps. In the Metaphysics, he asked what it is about
+
+Ответ на запрос: ""What are the main characteristics of complex systems?""
+На основе 3 извлечённых фрагментов система выделяет следующие тезисы:
+• This paper explores some of the factors that make complex systems complex. We first examine the history of complex systems. It was Aristotle's insight that how elements are joined together helps deter...
+• t also their organization and the forces that hold them together. A system of any complexity must be open to draw energy and resources from its environment. Such systems must have means for acquiring...
+• lly all communication is stigmergic. Quite a few steps were required to flesh out the idea of a complex system. Aristotle took one of the earliest steps. In the Metaphysics, he asked what it is about...
+
+Ответ сформирован исключительно на основе предоставленной базы знаний.","doc_000_0 (score=0.701), doc_000_30 (score=0.536), doc_000_5 (score=0.487)"
+How does artificial intelligence relate to human cognition?,"Контекст:
+Фрагмент doc_004_36 (источник: ds_PhilPapersAI.json, оценка: 0.422)
+istics. For example, Marvin Minsky has argued that 'Common sense logic is too unreliable for practical use.' A more sophisticated articulation of this insight characterizes humour as a reward mechanis
+
+---
+
+Фрагмент doc_004_38 (источник: ds_PhilPapersAI.json, оценка: 0.405)
+ection and cultural evolution as compensation for the slapdash nature of much cognition. Our minds prefer fast and unreliable heuristics over reliable but resource-intensive alternatives. Left uncheck
+
+---
+
+Фрагмент doc_003_44 (источник: ds_PhilPapersAI.json, оценка: 0.402)
+atterly, some artificial intelligence researchers have sought to integrate this work with formal accounts of defeasible reasoning developed during the explosion of interest in non-classical logics in
+
+Ответ на запрос: ""How does artificial intelligence relate to human cognition?""
+На основе 3 извлечённых фрагментов система выделяет следующие тезисы:
+• istics. For example, Marvin Minsky has argued that 'Common sense logic is too unreliable for practical use.' A more sophisticated articulation of this insight characterizes humour as a reward mechanis...
+• ection and cultural evolution as compensation for the slapdash nature of much cognition. Our minds prefer fast and unreliable heuristics over reliable but resource-intensive alternatives. Left uncheck...
+• atterly, some artificial intelligence researchers have sought to integrate this work with formal accounts of defeasible reasoning developed during the explosion of interest in non-classical logics in...
+
+Ответ сформирован исключительно на основе предоставленной базы знаний.","doc_004_36 (score=0.422), doc_004_38 (score=0.405), doc_003_44 (score=0.402)"
+What is the role of expert systems in diagnosing plant diseases?,"Контекст:
+Фрагмент doc_004_125 (источник: ds_PhilPapersAI.json, оценка: 0.314)
+earch through the resultant data set is conclusive. Much mathematical practice concerns the correct application of established rules. A notable example is the move from particular to general results.
+
+---
+
+Фрагмент doc_000_15 (источник: ds_PhilPapersAI.json, оценка: 0.295)
+mplicated problems originate from causes that can be individually distinguished. Complex problems result from networks of multiple interacting causes that cannot be individually distinguished. This se
+
+---
+
+Фрагмент doc_003_42 (источник: ds_PhilPapersAI.json, оценка: 0.281)
+guments into six components. The data (or grounds) provide qualified support for the claim in accordance with a warrant, which may in turn be supported by backing or admit exceptions or rebuttals. The
+
+Ответ на запрос: ""What is the role of expert systems in diagnosing plant diseases?""
+На основе 3 извлечённых фрагментов система выделяет следующие тезисы:
+• earch through the resultant data set is conclusive. Much mathematical practice concerns the correct application of established rules. A notable example is the move from particular to general results....
+• mplicated problems originate from causes that can be individually distinguished. Complex problems result from networks of multiple interacting causes that cannot be individually distinguished. This se...
+• guments into six components. The data (or grounds) provide qualified support for the claim in accordance with a warrant, which may in turn be supported by backing or admit exceptions or rebuttals. The...
+
+Ответ сформирован исключительно на основе предоставленной базы знаний.","doc_004_125 (score=0.314), doc_000_15 (score=0.295), doc_003_42 (score=0.281)"

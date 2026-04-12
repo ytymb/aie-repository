@@ -1,0 +1,3 @@
+query,before_retrieved_sources,after_retrieved_sources,changed
+Как предотвратить переобучение?,"doc_004, doc_004, doc_004","doc_new_01, doc_new_02, doc_004",True
+Что такое learning rate?,"doc_002, doc_004, doc_003","doc_new_01, doc_new_02, doc_002",True
